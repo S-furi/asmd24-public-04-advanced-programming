@@ -3,7 +3,7 @@ package scala.lab04
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen, Properties}
 
-import scala.lab04.SetADTs.{BasicSetADT, SetADT}
+import scala.lab04.SetADTs.{BasicSetADT, SetADT, TreeSetADT}
 import scala.language.postfixOps
 
 abstract class SetADTCheck(name: String) extends Properties(name):
@@ -120,7 +120,8 @@ abstract class SetADTCheck(name: String) extends Properties(name):
         else true
 
 object BasicSetADTCheck extends SetADTCheck("SequenceBased Set"):
-  val setADT: SetADT = BasicSetADT
+//  val setADT: SetADT = BasicSetADT
+  val setADT: SetADT = TreeSetADT
 
   @main def visuallingCheckArbitrarySets =
     Range(0,20).foreach(i => println(summon[Arbitrary[setADT.Set[Int]]].arbitrary.sample))
