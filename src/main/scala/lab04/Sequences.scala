@@ -17,6 +17,11 @@ object Sequences:
         case _          => 0
 
     extension [A](s: Sequence[A])
+      def flatMap[B](mapper: A => Sequence[B]): Sequence[B] = s match
+        case Cons(h, t) => mapper(h) match
+          case Cons(h2, t2) => Cons(h2, t.flatMap(mapper))
+          case Nil()       => t.flatMap(mapper)
+        case Nil()      => Nil()
 
       def map[B](mapper: A => B): Sequence[B] = s match
         case Cons(h, t) => Cons(mapper(h), t.map(mapper))
