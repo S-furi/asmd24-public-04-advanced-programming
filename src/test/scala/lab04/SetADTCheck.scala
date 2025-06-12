@@ -60,17 +60,15 @@ abstract class SetADTCheck(name: String) extends Properties(name):
         (a && (b || c)) === ((a && b) || (a && c))
 
   // Some Mathematical axioms for Sets taken from https://cdn.britannica.com/46/78246-004-10DAA5A8/Zermelo-Fraenkel-axioms.jpg
-  property("axiom of extension") =
+  property("axiom of extensionality") =
+    // If A and B are sets and if, for all x, x \in A if and only if x \in B, then A = B.
     forAll: (s1: Set[Int], s2: Set[Int]) =>
-      (s1 === s2) == ((s1 || s2).size() == s1.size())
+      if s1 === s2 then (s1.toSequence().flatMap(x => s2.remove(x).toSequence()).size == 0)
+      else true
 
   property("axiom of the empty set") =
     forAll: (s: Set[Int]) =>
-      (empty() || s) === s
-
-  property("axiom schema of separation") =
-    forAll: (s: Set[Int], x: Int) =>
-      !(s.contains(x) && s.remove(x).contains(x))
+      s.toSequence().filter(empty().contains(_)).size == 0
 
   property("axiom of pairing") =
     forAll: (s1: Set[Int], s2: Set[Int]) =>
