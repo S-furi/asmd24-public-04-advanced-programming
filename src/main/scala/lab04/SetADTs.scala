@@ -3,8 +3,8 @@ package scala.lab04
 import u04.datastructures.Sequences.*
 import Sequence.*
 
-import javax.xml.crypto.NodeSetData
-import scala.collection.immutable.TreeSet
+import scala.collection.immutable
+import scala.math.Ordering.comparatorToOrdering
 
 object SetADTs:
   
@@ -22,40 +22,32 @@ object SetADTs:
       def toSequence(): Sequence[A]
       def size(): Int
       def ===(other: Set[A]): Boolean
-    
 
   object TreeSetADT extends SetADT:
-    import scala.collection.immutable.HashSet
-    // Not the best tree-like structure, but HashSet are backed by Hash Array Mapped Trie
-    // quite good for general purpose sets. TreeSets could be used by they require
-    // the generic type to have some kind of Ordering.
-    opaque type Set[A] = HashSet[A]
+    import HashTrees.*
 
-    override def empty[A](): Set[A] = HashSet.empty
+    opaque type Set[A] = Tree[A]
+
+    override def empty[A](): Set[A] = EmptyHashTree
 
     extension [A](s: Set[A])
-      override def add(element: A): Set[A] = s + element
-
-      override def contains(a: A): Boolean = s.contains(a)
-
-      override def union(other: Set[A]): Set[A] = s.union(other)
-
-      override def intersection(other: Set[A]): Set[A] = s.intersect(other)
-
-      override def remove(a: A): Set[A] = s.filter(_ != a)
-
-      override def toSequence(): Sequence[A] =
-        if s.isEmpty then Nil()
-        else
-          val head = s.head
-          val tail = s - head
-          Cons(head, tail.toSequence())
-
+      override def add(element: A): Set[A] = s.insert(element)
+      override def contains(element: A): Boolean = s.contains(element)
+      override def union(other: Set[A]): Set[A] =
+        other.toList.foldLeft(s)(_.insert(_))
+      override def intersection(other: Tree[A]): Tree[A] =
+        s.filter(other.contains(_))
+      override def remove(a: A): Tree[A] = s.filter(_ != a)
+      override def toSequence(): Sequence[A] = s.toList.toSequence
       override def size(): Int = s.size
+      override def ===(other: Tree[A]): Boolean =
+        val interSize = s.intersection(other).size
+        interSize == s.size && interSize == other.size
 
-      override def ===(other: Set[A]): Boolean =
-        s.union(other).size() == s.size()
-
+    extension[A] (l: List[A])
+      def toSequence: Sequence[A] = l match
+        case h :: t => Cons(h, t.toSequence)
+        case immutable.Nil => Nil()
 
   object BasicSetADT extends SetADT:
 
@@ -96,7 +88,7 @@ object SetADTs:
 
 @main def trySetADTModule =
   import SetADTs.*
-  val setADT: SetADT = BasicSetADT
+  val setADT: SetADT = TreeSetADT
   import setADT.*
 
   val s1: Set[Int] = empty().add(10).add(20).add(30)
