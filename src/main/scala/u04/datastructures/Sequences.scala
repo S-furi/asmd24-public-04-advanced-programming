@@ -16,6 +16,16 @@ object Sequences:
         case Cons(h, t) => h + t.sum
         case _          => 0
 
+      def flatMap[B](mapper: Int => Sequence[B]): Sequence[B] = s match
+        case Cons(h, t) => mapper(h) match
+          case Cons(h2, t2) => Cons(h2, t.flatMap(mapper))
+          case Nil()       => t.flatMap(mapper)
+        case Nil()      => Nil()
+
+      def size: Int = s match
+        case Cons(_, t) => 1 + t.size
+        case Nil()      => 0
+
     extension [A](s: Sequence[A])
 
       def map[B](mapper: A => B): Sequence[B] = s match
