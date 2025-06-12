@@ -3,17 +3,17 @@ package scala.lab04
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen, Properties}
 
-import scala.lab04.SetADTs.{BasicSetADT, SetADT, TreeSetADT}
+import scala.lab04.SetADTs.{OrderedSetADT, TreeSetADT}
 import scala.language.postfixOps
 
 abstract class SetADTCheck(name: String) extends Properties(name):
-  val setADT: SetADT
+  val setADT: OrderedSetADT
   import setADT.*
 
   // generating a small Int
   def smallInt(): Gen[Int] = Gen.choose(0, 10)
   // generating a Set of Int with approximate size (modulo clashes)
-  def setGen[A: Arbitrary](size: Int): Gen[Set[A]] =
+  def setGen[A: Arbitrary: Ordering](size: Int): Gen[Set[A]] =
     if size == 0
       then Gen.const(empty())
     else for
@@ -68,7 +68,7 @@ abstract class SetADTCheck(name: String) extends Properties(name):
 
   property("axiom of the empty set") =
     forAll: (s: Set[Int]) =>
-      s.toSequence().filter(empty().contains(_)).size == 0
+      s.toSequence().filter(empty[Int]().contains(_)).size == 0
 
   property("axiom of pairing") =
     forAll: (s1: Set[Int], s2: Set[Int]) =>
@@ -88,7 +88,7 @@ abstract class SetADTCheck(name: String) extends Properties(name):
         s.add(x).contains(y) == (x == y) || s.contains(y)
    &&
      forAll: (x: Int) =>
-        !empty().contains(x)
+        !empty[Int]().contains(x)
 
 /**
  * axioms defining union and remove:
@@ -108,7 +108,7 @@ abstract class SetADTCheck(name: String) extends Properties(name):
         (s1 || s2.add(x)) === (s1 || s2).add(x)
     &&
       forAll: (x: Int) =>
-        setADT.empty().remove(x) === setADT.empty()
+        setADT.empty[Int]().remove(x) === setADT.empty()
     &&
       forAll: (s: Set[Int], x: Int) =>
         s.add(x).remove(x) === s.remove(x)
@@ -119,7 +119,7 @@ abstract class SetADTCheck(name: String) extends Properties(name):
 
 object BasicSetADTCheck extends SetADTCheck("SequenceBased Set"):
 //  val setADT: SetADT = BasicSetADT
-  val setADT: SetADT = TreeSetADT
+  val setADT: OrderedSetADT = TreeSetADT
 
   @main def visuallingCheckArbitrarySets =
     Range(0,20).foreach(i => println(summon[Arbitrary[setADT.Set[Int]]].arbitrary.sample))

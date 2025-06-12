@@ -4,6 +4,7 @@ import u04.datastructures.Sequences.*
 import Sequence.*
 
 import scala.collection.immutable
+import scala.lab04.SetADTs.TreeSetADT
 import scala.math.Ordering.comparatorToOrdering
 
 object SetADTs:
@@ -23,28 +24,41 @@ object SetADTs:
       def size(): Int
       def ===(other: Set[A]): Boolean
 
-  object TreeSetADT extends SetADT:
-    import HashTrees.*
+  trait OrderedSetADT:
+    type Set[A]
+    def empty[A: Ordering](): Set[A]
+    extension [A: Ordering](s: Set[A])
+      def add(element: A): Set[A]
+      def contains(a: A): Boolean
+      def union(other: Set[A]): Set[A]
+      def intersection(other: Set[A]): Set[A]
+      infix def ||(other: Set[A]): Set[A] = s.union(other)
+      infix def &&(other: Set[A]): Set[A] = s.intersection(other)
+      def remove(a: A): Set[A]
+      def toSequence(): Sequence[A]
+      def size(): Int
+      def ===(other: Set[A]): Boolean
 
-    opaque type Set[A] = Tree[A]
 
-    override def empty[A](): Set[A] = EmptyHashTree
+  object TreeSetADT extends OrderedSetADT:
+    import scala.lab04.BSTs.*
 
-    extension [A](s: Set[A])
+    override type Set[A] = Tree[A]
+
+    override def empty[A: Ordering](): Set[A] = EmptyNode()
+
+    extension [A: Ordering](s: Set[A])
       override def add(element: A): Set[A] = s.insert(element)
-      override def contains(element: A): Boolean = s.contains(element)
-      override def union(other: Set[A]): Set[A] =
-        other.toList.foldLeft(s)(_.insert(_))
-      override def intersection(other: Tree[A]): Tree[A] =
-        s.filter(other.contains(_))
-      override def remove(a: A): Tree[A] = s.filter(_ != a)
+      override def contains(a: A): Boolean = s.contains(a)
+      override def union(other: Set[A]): Set[A] = s.toList.foldLeft(other)(_.add(_))
+      override def intersection(other: Set[A]): Set[A] = s.filter(other.contains)
+      override def remove(a: A): Set[A] = s.filter(_ != a)
       override def toSequence(): Sequence[A] = s.toList.toSequence
       override def size(): Int = s.size
-      override def ===(other: Tree[A]): Boolean =
-        val interSize = s.intersection(other).size
-        interSize == s.size && interSize == other.size
+      override def ===(other: Set[A]): Boolean =
+        s.union(other).size == s.size && s.union(other).size == other.size
 
-    extension[A] (l: List[A])
+    extension [A](l: List[A])
       def toSequence: Sequence[A] = l match
         case h :: t => Cons(h, t.toSequence)
         case immutable.Nil => Nil()
@@ -53,7 +67,7 @@ object SetADTs:
 
     opaque type Set[A] = Sequence[A]
 
-    def empty[A](): Set[A] = Nil()
+    def empty[B](): Set[B] = Nil()
 
     extension [A](s: Set[A])
       def add(element: A): Set[A] = s match
@@ -85,14 +99,13 @@ object SetADTs:
       def ===(other: Set[A]): Boolean =
         s.union(other).size() == s.size()
 
-
 @main def trySetADTModule =
   import SetADTs.*
-  val setADT: SetADT = TreeSetADT
+  val setADT: OrderedSetADT = TreeSetADT
   import setADT.*
 
-  val s1: Set[Int] = empty().add(10).add(20).add(30)
-  val s2: Set[Int] = empty().add(10).add(11)
+  val s1 = empty[Int]().add(10).add(20).add(30)
+  val s2 = empty[Int]().add(10).add(11)
   // val s3: Set[Int] = Cons(10, Nil()) // because Set is defined opaque
   println(s1.toSequence()) // (10, 20, 30)
   println(s2.toSequence()) // (10, 11)
