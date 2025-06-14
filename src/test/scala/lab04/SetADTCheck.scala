@@ -61,7 +61,6 @@ abstract class SetADTCheck(name: String) extends Properties(name):
 
   // Some Mathematical axioms for Sets taken from https://cdn.britannica.com/46/78246-004-10DAA5A8/Zermelo-Fraenkel-axioms.jpg
   property("axiom of extensionality") =
-    // If A and B are sets and if, for all x, x \in A if and only if x \in B, then A = B.
     forAll: (s1: Set[Int], s2: Set[Int]) =>
       if s1 === s2 then (s1.toSequence().flatMap(x => s2.remove(x).toSequence()).size == 0)
       else true
@@ -78,11 +77,8 @@ abstract class SetADTCheck(name: String) extends Properties(name):
     forAll: (s1: Set[Int], s2: Set[Int], x: Int) =>
       (s1 || s2).contains(x) == (s1.contains(x) || s2.contains(x))
 
-  /**
-    * axioms defining contains based on empty/add:
-    * contains(empty, x) = false
-    * contains(add(x,s), y) = (x == y) || contains(s, y)
-  */
+  // axioms defining contains based on empty/add:
+  
   property("axioms for contains") =
      forAll: (s: Set[Int], x: Int, y:Int) =>
         s.add(x).contains(y) == (x == y) || s.contains(y)
@@ -90,16 +86,7 @@ abstract class SetADTCheck(name: String) extends Properties(name):
      forAll: (x: Int) =>
         !empty[Int]().contains(x)
 
-/**
- * axioms defining union and remove:
- * union(empty, s) = s
- * union(add(x, s2), s) = add(x, union(s2, s)
- * remove(x, empty) = empty
- * remove(x, add(x, s)) = remove(x, s)
- * remove(x, add(y, s)) = add(y, remove(x, s)) if x!=y
- *
- * and so on: write axioms and correspondingly implement checks
- */
+// axioms defining union and remove
   property("axioms for union and remove") =
       forAll: (s: Set[Int]) =>
         (s || setADT.empty()) === s
